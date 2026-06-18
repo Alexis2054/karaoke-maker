@@ -1,0 +1,1734 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Karaoke Maker — letra sincronizada y video</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Caveat:wght@700&family=Montserrat:wght@700;800;900&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#15110d;
+    --panel:#1e1812;
+    --panel-2:#241c14;
+    --border:#332a1d;
+    --ink:#f4ead8;
+    --ink-muted:#b6a890;
+    --amber:#e8a33d;
+    --amber-dim:#8a611f;
+    --red:#d6452f;
+    --teal:#3fa89c;
+    --mono:'JetBrains Mono',monospace;
+    --ui:'Work Sans',sans-serif;
+    --display:'Anton',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--ui);
+    line-height:1.45;
+  }
+  input,select,textarea,button{font-family:inherit;color:inherit;}
+  input[type=range],input[type=color],input[type=radio],input[type=checkbox]{accent-color:var(--amber);}
+
+  .app{max-width:1280px;margin:0 auto;padding:20px 20px 60px;}
+
+  header.top{
+    display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+    margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);
+  }
+  header.top .wordmark{
+    font-family:var(--display);font-size:26px;letter-spacing:0.5px;
+    color:var(--ink);text-transform:uppercase;
+  }
+  header.top .wordmark span{color:var(--amber);}
+  header.top .tagline{color:var(--ink-muted);font-size:13.5px;}
+
+  .toolbar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+
+  .layout{display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start;}
+  @media (max-width:900px){.layout{grid-template-columns:1fr;}}
+
+  .panel{
+    background:var(--panel);border:1px solid var(--border);border-radius:6px;
+    padding:0;overflow:hidden;
+  }
+  .section{padding:16px 16px;border-bottom:1px solid var(--border);}
+  .section:last-child{border-bottom:none;}
+  .section h2{
+    font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;
+    color:var(--amber);margin:0 0 12px;display:flex;align-items:center;gap:8px;
+  }
+  .section h2 .step{
+    background:var(--amber-dim);color:#1a1209;border-radius:3px;
+    font-size:10px;padding:1px 6px;font-weight:600;
+  }
+
+  label.field{display:block;font-size:12.5px;color:var(--ink-muted);margin:10px 0 4px;}
+  label.field:first-of-type{margin-top:0;}
+  input[type=text],input[type=number],textarea,select{
+    width:100%;background:var(--panel-2);border:1px solid var(--border);
+    color:var(--ink);border-radius:4px;padding:8px 10px;font-size:13.5px;
+  }
+  textarea{resize:vertical;font-family:var(--mono);font-size:12.5px;line-height:1.5;}
+  input[type=text]:focus,textarea:focus,select:focus{outline:1px solid var(--amber);}
+
+  .dropzone{
+    border:1.5px dashed var(--border);border-radius:5px;padding:18px 12px;
+    text-align:center;cursor:pointer;color:var(--ink-muted);font-size:12.5px;
+    transition:border-color .15s,background .15s;
+  }
+  .dropzone:hover,.dropzone.drag{border-color:var(--amber);background:#241b10;}
+  .dropzone strong{color:var(--ink);display:block;font-size:13.5px;margin-bottom:2px;}
+  .dropzone.small{padding:12px;}
+  .filename{font-family:var(--mono);font-size:11.5px;color:var(--teal);margin-top:6px;word-break:break-all;}
+
+  .btn{
+    border:none;border-radius:4px;padding:9px 14px;font-size:13px;font-weight:600;
+    cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  }
+  .btn-amber{background:var(--amber);color:#1a1209;}
+  .btn-amber:hover{background:#f0b455;}
+  .btn-outline{background:transparent;border:1px solid var(--border);color:var(--ink);}
+  .btn-outline:hover{border-color:var(--teal);color:var(--teal);}
+  .btn-red{background:var(--red);color:#fff0ec;}
+  .btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .btn-block{width:100%;justify-content:center;}
+  .btn-sm{padding:6px 10px;font-size:12px;}
+  .row{display:flex;gap:8px;}
+  .row > *{flex:1;}
+
+  .tabs{display:flex;gap:6px;margin-bottom:12px;}
+  .tab-btn{
+    flex:1;background:var(--panel-2);border:1px solid var(--border);color:var(--ink-muted);
+    border-radius:4px;padding:7px 6px;font-size:11.5px;font-weight:600;cursor:pointer;
+  }
+  .tab-btn.active{background:var(--amber-dim);color:var(--ink);border-color:var(--amber-dim);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .results{max-height:220px;overflow-y:auto;margin-top:10px;display:flex;flex-direction:column;gap:6px;}
+  .result-card{
+    background:var(--panel-2);border:1px solid var(--border);border-radius:4px;
+    padding:8px 10px;cursor:pointer;font-size:12.5px;
+  }
+  .result-card:hover{border-color:var(--amber);}
+  .result-card.selected{border-color:var(--amber);background:#2a2014;}
+  .result-card .rtitle{font-weight:700;color:var(--ink);}
+  .result-card .rmeta{color:var(--ink-muted);font-size:11px;margin-top:2px;}
+  .badge{
+    display:inline-block;font-family:var(--mono);font-size:9.5px;padding:1px 5px;
+    border-radius:3px;margin-left:6px;vertical-align:middle;
+  }
+  .badge-synced{background:#234a3f;color:#7fe0c4;}
+  .badge-plain{background:#4a3a23;color:#e0b97f;}
+  .hint{font-size:11.5px;color:var(--ink-muted);margin-top:6px;}
+  .warn{font-size:11.5px;color:#f0b455;margin-top:6px;}
+
+  details.lrc-editor{margin-top:12px;}
+  details.lrc-editor > summary{cursor:pointer;font-size:12px;color:var(--teal);}
+  details.lrc-editor textarea{margin-top:8px;height:120px;}
+
+  .manual-list{max-height:200px;overflow-y:auto;margin-top:10px;display:flex;flex-direction:column;gap:4px;}
+  .manual-line{
+    display:flex;justify-content:space-between;gap:8px;padding:5px 8px;border-radius:3px;
+    background:var(--panel-2);font-size:12px;
+  }
+  .manual-line.current{background:#2a2014;border:1px solid var(--amber);}
+  .manual-line .t{font-family:var(--mono);color:var(--teal);font-size:11px;}
+
+  .swatch-row{display:flex;gap:8px;align-items:center;}
+  input[type=color]{width:38px;height:30px;border:1px solid var(--border);border-radius:4px;background:none;padding:2px;}
+
+  .preset-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+  .preset-swatch{
+    width:38px;height:38px;border-radius:6px;border:1px solid var(--border);
+    cursor:pointer;padding:0;
+  }
+  .preset-swatch:hover{border-color:var(--amber);}
+
+  .bg-sub{display:none;margin-top:8px;}
+  .bg-sub.active{display:block;}
+
+  .aspect-row{display:flex;gap:8px;margin-top:8px;}
+  .aspect-btn{
+    flex:1;background:var(--panel-2);border:1px solid var(--border);color:var(--ink-muted);
+    border-radius:4px;padding:8px;font-size:12px;cursor:pointer;font-family:var(--mono);
+  }
+  .aspect-btn.active{border-color:var(--amber);color:var(--amber);}
+  .aspect-btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+  .progress{height:6px;background:var(--panel-2);border-radius:3px;overflow:hidden;margin-top:10px;display:none;}
+  .progress.show{display:block;}
+  .progress > div{height:100%;width:0%;background:var(--amber);transition:width .2s;}
+  .export-status{font-size:12px;color:var(--ink-muted);margin-top:8px;min-height:16px;}
+  a.download-link{display:none;margin-top:10px;}
+  a.download-link.show{display:flex;}
+
+  /* stage / preview */
+  .stage{display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .screen-frame{
+    width:100%;max-width:640px;background:#000;border-radius:6px;
+    border:1px solid var(--border);border-top:3px solid var(--amber);
+    box-shadow:0 12px 30px rgba(0,0,0,0.45);position:relative;overflow:hidden;
+    aspect-ratio:16/9;
+  }
+  .screen-frame canvas{width:100%;height:100%;display:block;}
+  .rec-indicator{
+    position:absolute;top:10px;left:12px;display:none;align-items:center;gap:6px;
+    font-family:var(--mono);font-size:11px;color:#ff8a73;background:rgba(0,0,0,0.45);
+    padding:3px 8px;border-radius:3px;
+  }
+  .rec-indicator.show{display:flex;}
+  .rec-dot{width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.25;}}
+
+  .transport{
+    width:100%;max-width:640px;display:flex;align-items:center;gap:10px;
+    background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 14px;
+  }
+  .transport button{
+    background:var(--amber);border:none;width:34px;height:34px;border-radius:50%;
+    color:#1a1209;font-size:14px;cursor:pointer;flex-shrink:0;
+  }
+  .transport input[type=range]{flex:1;}
+  .time{font-family:var(--mono);font-size:12px;color:var(--ink-muted);white-space:nowrap;}
+
+  footer.note{
+    margin-top:26px;padding-top:14px;border-top:1px solid var(--border);
+    color:var(--ink-muted);font-size:11.5px;
+  }
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="wordmark">Karaoke<span>Maker</span></div>
+    <div class="tagline">Sube tu canción, sincroniza la letra y exporta el video — todo en tu navegador.</div>
+  </header>
+
+  <div class="toolbar">
+    <button class="btn btn-outline btn-sm" id="saveProjectBtn">Guardar proyecto</button>
+    <button class="btn btn-outline btn-sm" id="loadProjectBtn">Cargar proyecto</button>
+    <input type="file" id="loadProjectInput" accept="application/json" class="hidden">
+  </div>
+
+  <main class="layout">
+    <aside class="panel">
+
+      <!-- SECCIÓN 1: CANCIÓN -->
+      <div class="section">
+        <h2><span class="step">1</span>Canción y letra</h2>
+
+        <label class="field">Audio de la canción (lo que se escuchará en el video)</label>
+        <div class="dropzone" id="dropzone">
+          <strong>Arrastra un archivo o toca para elegir</strong>
+          MP3, WAV, M4A, OGG…
+          <div class="filename" id="fileName"></div>
+        </div>
+        <input type="file" id="audioFile" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.mp4,.m4v" class="hidden">
+        <button type="button" class="btn btn-outline btn-block" id="audioFileBtn" style="margin-top:6px;font-size:12px;">Seleccionar archivo de audio (iOS)</button>
+
+        <div class="row" style="margin-top:12px;">
+          <div>
+            <label class="field">Título</label>
+            <input type="text" id="songTitle" placeholder="Nombre de la canción">
+          </div>
+          <div>
+            <label class="field">Artista</label>
+            <input type="text" id="songArtist" placeholder="Quién la canta">
+          </div>
+        </div>
+
+        <div class="tabs" style="margin-top:14px;">
+          <button class="tab-btn active" data-tab="ai">Generar con IA</button>
+          <button class="tab-btn" data-tab="auto">Buscar letra</button>
+          <button class="tab-btn" data-tab="manual">A mano</button>
+        </div>
+
+        <!-- TAB: IA -->
+        <div class="tab-panel active" id="panel-ai">
+          <div class="hint">Transcribe la canción con IA (AssemblyAI) y genera la letra sincronizada automáticamente. Ideal para tus temas propios que no están en bases de letras públicas.</div>
+
+          <label class="field">Pista de voz aislada (opcional, mejora mucho la precisión)</label>
+          <div class="dropzone small" id="aiVocalDropzone">
+            <strong>Si ya la separaste en Moisés, súbela aquí</strong>
+            Si no subes nada, se usará el audio principal
+            <div class="filename" id="aiVocalFileName"></div>
+          </div>
+          <input type="file" id="aiVocalFile" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.mp4,.m4v" class="hidden">
+
+          <label class="field">Idioma</label>
+          <select id="aiLanguageSelect">
+            <option value="es">Español</option>
+            <option value="en">Inglés</option>
+            <option value="auto">Detectar automáticamente</option>
+          </select>
+
+          <label class="field">Palabras o nombres clave (opcional)</label>
+          <input type="text" id="keytermsInput" placeholder="p.ej. Los Diablos de la Salsa, Abner, Tepito">
+          <div class="hint" style="margin-top:4px;">Separa con comas. Ayuda a que la IA reconozca mejor nombres propios, modismos o palabras poco comunes en tu canción.</div>
+
+          <button class="btn btn-amber btn-block" id="transcribeBtn" style="margin-top:12px;">Transcribir con IA</button>
+          <div class="progress" id="aiProgress"><div id="aiProgressFill"></div></div>
+          <div class="export-status" id="aiStatus"></div>
+        </div>
+
+        <!-- TAB: AUTO (LRCLIB) -->
+        <div class="tab-panel" id="panel-auto">
+          <button class="btn btn-amber btn-block" id="searchBtn">Buscar letra sincronizada</button>
+          <div class="hint">Busca en LRCLIB, una base de letras sincronizadas abierta y gratuita. Funciona mejor con canciones conocidas.</div>
+          <div class="results" id="resultsList"></div>
+          <div class="warn hidden" id="durationWarning"></div>
+        </div>
+
+        <!-- TAB: MANUAL -->
+        <div class="tab-panel" id="panel-manual">
+          <label class="field">Pega o escribe la letra (una línea por verso)</label>
+          <textarea id="manualLyrics" placeholder="Línea 1&#10;Línea 2&#10;Línea 3..."></textarea>
+          <button class="btn btn-outline btn-block" id="prepareManualBtn" style="margin-top:8px;">Preparar sincronización</button>
+
+          <div id="manualSyncTools" class="hidden" style="margin-top:12px;">
+            <div class="hint">Reproduce la canción y toca "Marcar línea" justo cuando empiece a cantarse cada verso.</div>
+            <div class="row" style="margin-top:8px;">
+              <button class="btn btn-outline" id="manualPlayBtn">▶ Reproducir desde inicio</button>
+              <button class="btn btn-amber" id="markLineBtn">Marcar línea (espacio)</button>
+            </div>
+            <div class="row" style="margin-top:8px;">
+              <button class="btn btn-outline" id="undoMarkBtn">Deshacer última marca</button>
+              <button class="btn btn-amber" id="saveManualBtn">Guardar sincronización</button>
+            </div>
+            <div class="manual-list" id="manualList"></div>
+          </div>
+        </div>
+
+        <details class="lrc-editor">
+          <summary>Editar letra cruda (formato LRC)</summary>
+          <textarea id="lrcEditor" placeholder="[00:12.30] Primera línea..."></textarea>
+          <button class="btn btn-outline" id="applyLrcBtn" style="margin-top:8px;">Aplicar cambios</button>
+        </details>
+
+        <label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12.5px;cursor:pointer;">
+          <input type="checkbox" id="punctSplitCheck" checked>
+          Separar líneas en comas y puntos (recomendado)
+        </label>
+        <div class="hint" style="margin-top:2px;">Cuando está activo, cada frase termina en su coma o punto y empieza una nueva línea — da ritmo más natural al karaoke.</div>
+
+        <label class="field">Ajuste de sincronización: <span id="offsetLabel">0.0s</span></label>
+        <input type="range" id="offsetRange" min="-8" max="8" step="0.1" value="0" style="width:100%;">
+        <div class="hint">Si la letra va adelantada o atrasada respecto a tu audio, ajusta aquí.</div>
+      </div>
+
+      <!-- SECCIÓN 2: ESTILO -->
+      <div class="section">
+        <h2><span class="step">2</span>Estilo del video</h2>
+
+        <label class="field">Formato</label>
+        <div class="aspect-row">
+          <button class="aspect-btn active" data-aspect="16:9">16:9 · YouTube / TV</button>
+          <button class="aspect-btn" data-aspect="9:16">9:16 · Reels / TikTok</button>
+        </div>
+
+        <label class="field" style="margin-top:14px;">Fondo</label>
+        <div class="hint" style="margin-top:0;">Toca un fondo rápido o personaliza el tuyo abajo.</div>
+        <div class="preset-row">
+          <button type="button" class="preset-swatch" data-a="#ff5d3d" data-b="#230a08" style="background:linear-gradient(135deg,#ff5d3d,#230a08)" title="Salsa"></button>
+          <button type="button" class="preset-swatch" data-a="#1f6fff" data-b="#03102e" style="background:linear-gradient(135deg,#1f6fff,#03102e)" title="Eléctrico"></button>
+          <button type="button" class="preset-swatch" data-a="#ff2bd6" data-b="#2b0036" style="background:linear-gradient(135deg,#ff2bd6,#2b0036)" title="Neón"></button>
+          <button type="button" class="preset-swatch" data-a="#1de9a0" data-b="#033323" style="background:linear-gradient(135deg,#1de9a0,#033323)" title="Tropical"></button>
+          <button type="button" class="preset-swatch" data-a="#7b2ff7" data-b="#170a33" style="background:linear-gradient(135deg,#7b2ff7,#170a33)" title="Club"></button>
+          <button type="button" class="preset-swatch" data-a="#ffd23d" data-b="#3a1c00" style="background:linear-gradient(135deg,#ffd23d,#3a1c00)" title="Atardecer"></button>
+        </div>
+        <div class="row" style="margin-top:10px;">
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-muted);"><input type="radio" name="bgType" value="gradient" checked> Degradado</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-muted);"><input type="radio" name="bgType" value="color"> Color sólido</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-muted);"><input type="radio" name="bgType" value="image"> Imagen</label>
+        </div>
+
+        <div class="bg-sub active" data-type="gradient">
+          <div class="swatch-row">
+            <input type="color" id="bgGradA" value="#ff5d3d">
+            <input type="color" id="bgGradB" value="#230a08">
+            <input type="range" id="bgAngle" min="0" max="360" value="135" style="flex:1;">
+          </div>
+        </div>
+        <div class="bg-sub" data-type="color">
+          <input type="color" id="bgColor" value="#1c1410">
+        </div>
+        <div class="bg-sub" data-type="image">
+          <input type="file" id="bgImageInput" accept="image/*">
+        </div>
+
+        <label class="field">Líneas visibles a la vez</label>
+        <select id="visibleLinesSelect">
+          <option value="2">2 líneas</option>
+          <option value="4" selected>4 líneas</option>
+          <option value="6">6 líneas</option>
+          <option value="8">8 líneas</option>
+          <option value="10">10 líneas</option>
+        </select>
+
+        <label class="field">Mostrar la siguiente línea: <span id="anticipationLabel">4s</span> antes</label>
+        <input type="range" id="anticipationRange" min="2" max="10" step="1" value="4" style="width:100%;">
+
+        <label class="field">Tipo de letra</label>
+        <select id="fontSelect">
+          <option value="Montserrat">Montserrat — limpia y moderna</option>
+          <option value="Anton">Anton — póster, impacto</option>
+          <option value="Bebas Neue">Bebas Neue — condensada</option>
+          <option value="Caveat">Caveat — manuscrita, cálida</option>
+        </select>
+
+        <label class="field">Tamaño de letra: <span id="fontSizeLabel">56</span>px</label>
+        <input type="range" id="fontSizeRange" min="30" max="90" value="56" style="width:100%;">
+
+        <div class="row" style="margin-top:10px;">
+          <div>
+            <label class="field">Color de texto</label>
+            <input type="color" id="textColor" value="#f4ead8">
+          </div>
+          <div>
+            <label class="field">Color de línea activa</label>
+            <input type="color" id="highlightColor" value="#e8a33d">
+          </div>
+        </div>
+
+        <label class="field">Marca de agua / Logo</label>
+        <div class="row">
+          <div>
+            <input type="text" id="watermarkInput" placeholder="p.ej. Los Diablos de la Salsa">
+          </div>
+          <div style="flex:0 0 auto;">
+            <input type="file" id="logoInput" accept="image/*" class="hidden">
+            <button type="button" class="btn btn-outline btn-sm" id="logoBtn" style="height:38px;">Subir logo</button>
+            <div class="filename" id="logoFileName" style="margin-top:4px;"></div>
+          </div>
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <div>
+            <label class="field" style="margin-top:0;">Tipo</label>
+            <select id="watermarkFontSelect">
+              <option value="Work Sans">Work Sans</option>
+              <option value="Montserrat">Montserrat</option>
+              <option value="Anton">Anton</option>
+              <option value="Bebas Neue">Bebas Neue</option>
+              <option value="Caveat">Caveat</option>
+            </select>
+          </div>
+          <div>
+            <label class="field" style="margin-top:0;">Tamaño: <span id="wmSizeLabel">28</span>px</label>
+            <input type="range" id="wmSizeRange" min="14" max="72" value="28" style="width:100%;margin-top:8px;">
+          </div>
+          <div style="flex:0 0 auto;">
+            <label class="field" style="margin-top:0;">Color</label>
+            <input type="color" id="watermarkColor" value="#ffffff">
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 3: EXPORTAR -->
+      <div class="section">
+        <h2><span class="step">3</span>Exportar</h2>
+
+        <label class="field">Audio del video final (instrumental)</label>
+        <div class="dropzone small" id="instrumentalDropzone">
+          <strong>Sube el instrumental de Moisés</strong>
+          Si no subes nada, se usa el audio principal
+          <div class="filename" id="instrumentalFileName"></div>
+        </div>
+        <input type="file" id="instrumentalFile" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.mp4,.m4v" class="hidden">
+        <button type="button" class="btn btn-outline btn-block" id="instrumentalBtn" style="margin-top:6px;font-size:12px;">Seleccionar instrumental (iOS)</button>
+
+        <button class="btn btn-red btn-block" id="exportBtn" style="margin-top:14px;">Generar video</button>
+        <div class="progress" id="progress"><div id="progressFill"></div></div>
+        <div class="export-status" id="exportStatus"></div>
+        <a class="btn btn-amber download-link" id="downloadLink" style="margin-top:8px;">⬇ Descargar video (WebM — listo ya)</a>
+        <a class="btn btn-amber download-link" id="downloadLinkMp4" style="margin-top:6px;display:none;">⬇ Descargar video (MP4 — listo)</a>
+        <div class="hint">El video se graba en tiempo real. Al terminar la canción aparece la descarga inmediata en WebM; la versión MP4 (más compatible) se convierte en segundo plano y aparece cuando esté lista.</div>
+      </div>
+
+    </aside>
+
+    <section class="stage">
+      <div class="screen-frame" id="screenFrame">
+        <canvas id="canvas" width="1280" height="720"></canvas>
+        <div class="rec-indicator" id="recIndicator"><span class="rec-dot"></span>GRABANDO</div>
+      </div>
+      <div class="transport">
+        <button id="playBtn">▶</button>
+        <input type="range" id="seekRange" min="0" max="100" value="0" step="0.01">
+        <div class="time"><span id="timeNow">0:00</span> / <span id="timeTotal">0:00</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="note">
+    Asegúrate de tener los derechos de la música y la letra que uses. La transcripción con IA usa AssemblyAI a través de tus propias funciones de Netlify y tu propia clave — el costo lo cobra AssemblyAI directamente a tu cuenta.
+  </footer>
+</div>
+
+<audio id="audio" preload="metadata"></audio>
+
+<script>
+(function(){
+  "use strict";
+
+  const FUNCTIONS_BASE = '/.netlify/functions';
+
+  // ---------- estado ----------
+  const state = {
+    audioURL:null, audioDuration:0,
+    mainAudioFile:null,
+    transcribeFile:null,
+    lines:[], // [{t, text}]
+    offset:0,
+    selectedDuration:null,
+    aspect:'16:9',
+    visibleLineCount:4,
+    anticipationSeconds:4,
+    introDuration:4,
+    style:{
+      bgType:'gradient',
+      bgColor:'#1c1410',
+      bgGradA:'#ff5d3d', bgGradB:'#230a08', bgAngle:135,
+      bgImage:null,
+      font:'Montserrat',
+      fontSize:56,
+      textColor:'#f4ead8',
+      highlightColor:'#e8a33d',
+      watermark:'',
+      watermarkFont:'Work Sans',
+      watermarkSize:28,
+      watermarkColor:'#ffffff',
+      logoDataURL:null
+    },
+    manualPending:null // [{text, t}]
+  };
+
+  let bgImageEl = null;
+
+  // ---------- helpers ----------
+  function formatTime(sec){
+    if(!isFinite(sec) || sec<0) sec=0;
+    const m = Math.floor(sec/60);
+    const s = Math.floor(sec%60);
+    return m+':'+String(s).padStart(2,'0');
+  }
+  function formatLRCTime(t){
+    const m = Math.floor(t/60);
+    const s = (t%60).toFixed(2).padStart(5,'0');
+    return String(m).padStart(2,'0')+':'+s;
+  }
+  function slug(str){
+    return (str||'karaoke').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') || 'karaoke';
+  }
+
+  function parseLRC(lrc){
+    const out = [];
+    const re = /\[(\d+):(\d+(?:\.\d+)?)\]/g;
+    (lrc||'').split('\n').forEach(raw=>{
+      const matches = [...raw.matchAll(re)];
+      if(!matches.length) return;
+      const text = raw.replace(re,'').trim();
+      matches.forEach(m=>{
+        const min = parseInt(m[1],10), sec = parseFloat(m[2]);
+        out.push({t:min*60+sec, text});
+      });
+    });
+    out.sort((a,b)=>a.t-b.t);
+    return out;
+  }
+  function serializeLRC(lines){
+    return lines.map(l=>'['+formatLRCTime(l.t)+'] '+l.text).join('\n');
+  }
+  function guessFromFilename(name){
+    const base = name.replace(/\.[a-z0-9]+$/i,'');
+    const m = base.match(/^(.*?)\s*-\s*(.*)$/);
+    if(m) return {artist:m[1].trim(), title:m[2].trim()};
+    return {artist:'', title:base.trim()};
+  }
+  function loadScript(src){
+    return new Promise((resolve,reject)=>{
+      const s = document.createElement('script');
+      s.src = src; s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  // ---------- audio principal ----------
+  const audio = document.getElementById('audio');
+  const dropzone = document.getElementById('dropzone');
+  const audioFileInput = document.getElementById('audioFile');
+  const fileNameEl = document.getElementById('fileName');
+  const titleInput = document.getElementById('songTitle');
+  const artistInput = document.getElementById('songArtist');
+  const screenFrame = document.getElementById('screenFrame');
+
+  dropzone.addEventListener('click', ()=>audioFileInput.click());
+  document.getElementById('audioFileBtn').addEventListener('click', ()=>audioFileInput.click());
+  dropzone.addEventListener('dragover', e=>{e.preventDefault(); dropzone.classList.add('drag');});
+  dropzone.addEventListener('dragleave', ()=>dropzone.classList.remove('drag'));
+  dropzone.addEventListener('drop', e=>{
+    e.preventDefault(); dropzone.classList.remove('drag');
+    if(e.dataTransfer.files && e.dataTransfer.files[0]) loadAudioFile(e.dataTransfer.files[0]);
+  });
+  audioFileInput.addEventListener('change', e=>{
+    if(e.target.files && e.target.files[0]) loadAudioFile(e.target.files[0]);
+  });
+
+  function loadAudioFile(file){
+    state.mainAudioFile = file;
+    state.audioURL = URL.createObjectURL(file);
+    audio.src = state.audioURL;
+    audio.load();
+    fileNameEl.textContent = file.name;
+    if(!titleInput.value && !artistInput.value){
+      const g = guessFromFilename(file.name);
+      if(g.title) titleInput.value = g.title;
+      if(g.artist) artistInput.value = g.artist;
+    }
+  }
+  audio.addEventListener('loadedmetadata', ()=>{
+    state.audioDuration = audio.duration;
+    document.getElementById('timeTotal').textContent = formatTime(audio.duration);
+    document.getElementById('seekRange').max = audio.duration;
+    checkDurationMismatch();
+  });
+  audio.addEventListener('timeupdate', ()=>{
+    document.getElementById('timeNow').textContent = formatTime(audio.currentTime);
+    document.getElementById('seekRange').value = audio.currentTime;
+  });
+  audio.addEventListener('play', ()=>{ playBtn.textContent='❙❙'; });
+  audio.addEventListener('pause', ()=>{ playBtn.textContent='▶'; });
+
+  const playBtn = document.getElementById('playBtn');
+  playBtn.addEventListener('click', ()=>{
+    if(!audio.src){ return; }
+    if(audio.paused) audio.play(); else audio.pause();
+  });
+  const seekRange = document.getElementById('seekRange');
+  seekRange.addEventListener('input', ()=>{ audio.currentTime = parseFloat(seekRange.value); });
+
+  // ---------- audio opcional para transcripción ----------
+  const aiVocalDropzone = document.getElementById('aiVocalDropzone');
+  const aiVocalFileInput = document.getElementById('aiVocalFile');
+  const aiVocalFileName = document.getElementById('aiVocalFileName');
+  aiVocalDropzone.addEventListener('click', ()=>aiVocalFileInput.click());
+  aiVocalDropzone.addEventListener('dragover', e=>{e.preventDefault(); aiVocalDropzone.classList.add('drag');});
+  aiVocalDropzone.addEventListener('dragleave', ()=>aiVocalDropzone.classList.remove('drag'));
+  aiVocalDropzone.addEventListener('drop', e=>{
+    e.preventDefault(); aiVocalDropzone.classList.remove('drag');
+    if(e.dataTransfer.files && e.dataTransfer.files[0]){
+      state.transcribeFile = e.dataTransfer.files[0];
+      aiVocalFileName.textContent = state.transcribeFile.name;
+    }
+  });
+  aiVocalFileInput.addEventListener('change', e=>{
+    if(e.target.files && e.target.files[0]){
+      state.transcribeFile = e.target.files[0];
+      aiVocalFileName.textContent = state.transcribeFile.name;
+    }
+  });
+
+  // ---------- pestañas letra ----------
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ---------- TAB IA: transcripción con AssemblyAI ----------
+  const transcribeBtn = document.getElementById('transcribeBtn');
+  const aiProgress = document.getElementById('aiProgress');
+  const aiProgressFill = document.getElementById('aiProgressFill');
+  const aiStatus = document.getElementById('aiStatus');
+  const aiLanguageSelect = document.getElementById('aiLanguageSelect');
+
+  function setAiProgress(ratio){
+    aiProgress.classList.add('show');
+    aiProgressFill.style.width = Math.round(Math.max(0,Math.min(1,ratio))*100)+'%';
+  }
+
+  let lamejsLoaded = false;
+  async function ensureLameJs(){
+    if(lamejsLoaded) return;
+    await loadScript('https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js');
+    lamejsLoaded = true;
+  }
+
+  async function prepareCompactAudio(file, onProgress){
+    const arrayBuf = await file.arrayBuffer();
+    const tempCtx = new (window.AudioContext||window.webkitAudioContext)();
+    const decoded = await tempCtx.decodeAudioData(arrayBuf.slice(0));
+    tempCtx.close();
+    onProgress && onProgress(0.25);
+
+    const targetRate = 16000;
+    const offline = new OfflineAudioContext(1, Math.ceil(decoded.duration*targetRate)+1, targetRate);
+    const src = offline.createBufferSource();
+    src.buffer = decoded;
+    src.connect(offline.destination);
+    src.start(0);
+    const rendered = await offline.startRendering();
+    onProgress && onProgress(0.4);
+
+    const pcm = rendered.getChannelData(0);
+    const samples = new Int16Array(pcm.length);
+    for(let i=0;i<pcm.length;i++){
+      let s = Math.max(-1, Math.min(1, pcm[i]));
+      samples[i] = s<0 ? s*0x8000 : s*0x7FFF;
+    }
+
+    await ensureLameJs();
+    const encoder = new lamejs.Mp3Encoder(1, targetRate, 32);
+    const blockSize = 1152;
+    const mp3Chunks = [];
+    for(let i=0;i<samples.length;i+=blockSize){
+      const chunk = samples.subarray(i, i+blockSize);
+      const buf = encoder.encodeBuffer(chunk);
+      if(buf.length>0) mp3Chunks.push(buf);
+      if((i/blockSize) % 300 === 0){
+        onProgress && onProgress(0.4 + 0.5*(i/samples.length));
+        await new Promise(r=>setTimeout(r,0));
+      }
+    }
+    const endBuf = encoder.flush();
+    if(endBuf.length>0) mp3Chunks.push(endBuf);
+    onProgress && onProgress(0.9);
+    return new Blob(mp3Chunks, {type:'audio/mp3'});
+  }
+
+  // Devuelve true si la palabra termina en puntuación que indica pausa natural
+  function endsPhrase(text){
+    return /[.,!?;:…]$/.test(text.trim());
+  }
+
+  function wordsToLines(words){
+    const GAP = 0.6;
+    const MAXCHARS = 42;
+    const lines = [];
+    let cur = null;
+    let prevEnd = null;
+    (words||[]).forEach(w=>{
+      const start = w.start/1000, end = w.end/1000;
+      const gapBreak = prevEnd!==null && (start-prevEnd)>GAP;
+      const lenBreak = cur && cur.text.length>MAXCHARS;
+      const punctBreak = cur && endsPhrase(cur.text); // corta DESPUÉS de poner la coma/punto
+      const startsNew = !cur || gapBreak || lenBreak || punctBreak;
+      if(startsNew){
+        if(cur) lines.push(cur);
+        cur = {t:start, text:w.text, words:[{text:w.text, t:start, end:end}]};
+      } else {
+        cur.text += ' '+w.text;
+        cur.words.push({text:w.text, t:start, end:end});
+      }
+      prevEnd = end;
+    });
+    if(cur) lines.push(cur);
+    return lines;
+  }
+
+  // Divide líneas de LRCLIB o manuales (sin timestamps por palabra) en frases por puntuación.
+  // Los tiempos se interpolan proporcionalmente al número de caracteres.
+  function splitLinesByPunct(lines){
+    const out = [];
+    lines.forEach(line=>{
+      const text = line.text;
+      // Divide por coma, punto, !, ?, ; manteniendo el signo al final de cada parte
+      const parts = text.split(/(?<=[,\.!?;…])\s+/);
+      if(parts.length<=1){ out.push(line); return; }
+      const total = text.length;
+      const nextT = null; // desconocido; se estima debajo
+      let charPos = 0;
+      parts.forEach((part,i)=>{
+        const frac = charPos/Math.max(1,total);
+        const dur = estimateLineDuration(text);
+        const t = line.t + dur*frac;
+        out.push({t, text:part.trim()});
+        charPos += part.length + 1;
+      });
+    });
+    out.sort((a,b)=>a.t-b.t);
+    return out;
+  }
+
+  transcribeBtn.addEventListener('click', async ()=>{
+    const sourceFile = state.transcribeFile || state.mainAudioFile;
+    if(!sourceFile){ alert('Sube primero el audio de la canción (o una pista de voz aislada).'); return; }
+
+    transcribeBtn.disabled = true;
+    setAiProgress(0.02);
+    aiStatus.textContent = 'Preparando audio para transcripción…';
+
+    try{
+      const compactBlob = await prepareCompactAudio(sourceFile, p=>setAiProgress(0.02+p*0.4));
+
+      aiStatus.textContent = 'Subiendo audio…';
+      const uploadRes = await fetch(FUNCTIONS_BASE+'/transcribe-upload', {method:'POST', body:compactBlob});
+      const uploadData = await uploadRes.json();
+      if(!uploadRes.ok) throw new Error(uploadData.error || ('Error al subir ('+uploadRes.status+')'));
+      setAiProgress(0.45);
+
+      aiStatus.textContent = 'Enviando a transcribir…';
+      const lang = aiLanguageSelect.value;
+      const keytermsRaw = document.getElementById('keytermsInput').value.trim();
+      const keyterms = keytermsRaw ? keytermsRaw.split(',').map(k=>k.trim()).filter(Boolean) : [];
+      const submitBody = {audio_url: uploadData.upload_url};
+      if(lang==='auto') submitBody.language_detection = true;
+      else submitBody.language_code = lang;
+      if(keyterms.length) submitBody.keyterms = keyterms;
+      const submitRes = await fetch(FUNCTIONS_BASE+'/transcribe-submit', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(submitBody)
+      });
+      const submitData = await submitRes.json();
+      if(!submitRes.ok) throw new Error(submitData.error || ('Error al enviar ('+submitRes.status+')'));
+      setAiProgress(0.5);
+
+      aiStatus.textContent = 'Transcribiendo (puede tardar uno o dos minutos)…';
+      let result = null;
+      for(let i=0;i<150;i++){
+        await new Promise(r=>setTimeout(r,3000));
+        const statusRes = await fetch(FUNCTIONS_BASE+'/transcribe-status?id='+encodeURIComponent(submitData.id));
+        const statusData = await statusRes.json();
+        if(!statusRes.ok) throw new Error(statusData.error || ('Error de estado ('+statusRes.status+')'));
+        result = statusData;
+        setAiProgress(0.5 + Math.min(0.45, i*0.006));
+        if(result.status==='completed' || result.status==='error') break;
+      }
+      if(!result) throw new Error('No se obtuvo respuesta del servidor.');
+      if(result.status==='error') throw new Error(result.error || 'Error de transcripción.');
+      if(result.status!=='completed') throw new Error('La transcripción tardó demasiado. Intenta de nuevo.');
+
+      let lines = wordsToLines(result.words);
+      if(document.getElementById('punctSplitCheck').checked){
+        // wordsToLines ya cortó por puntuación al nivel de palabra;
+        // splitLinesByPunct lo refina para las frases que quedaron juntas
+        lines = splitLinesByPunct(lines);
+      }
+      if(!lines.length) throw new Error('No se detectó letra cantada en el audio.');
+      state.lines = lines;
+      document.getElementById('lrcEditor').value = serializeLRC(lines);
+      setAiProgress(1);
+      aiStatus.textContent = 'Listo: '+lines.length+' líneas generadas. Revísalas en "Editar letra cruda" antes de exportar.';
+    }catch(err){
+      console.error(err);
+      aiStatus.textContent = 'No se pudo transcribir: '+err.message;
+    }finally{
+      transcribeBtn.disabled = false;
+    }
+  });
+
+  // ---------- búsqueda automática (LRCLIB) ----------
+  const searchBtn = document.getElementById('searchBtn');
+  const resultsList = document.getElementById('resultsList');
+  const durationWarning = document.getElementById('durationWarning');
+
+  searchBtn.addEventListener('click', async ()=>{
+    const track = titleInput.value.trim();
+    const artist = artistInput.value.trim();
+    if(!track){ alert('Escribe al menos el título de la canción.'); return; }
+    resultsList.innerHTML = '<div class="hint">Buscando…</div>';
+    try{
+      const params = new URLSearchParams({track_name:track});
+      if(artist) params.set('artist_name', artist);
+      const res = await fetch('https://lrclib.net/api/search?'+params.toString());
+      if(!res.ok) throw new Error('status '+res.status);
+      const data = await res.json();
+      renderResults(data);
+    }catch(err){
+      console.error(err);
+      resultsList.innerHTML = '<div class="hint">No se pudo buscar (revisa tu conexión). Prueba "Generar con IA" o "A mano".</div>';
+    }
+  });
+
+  function renderResults(data){
+    if(!data || !data.length){
+      resultsList.innerHTML = '<div class="hint">Sin resultados. Prueba "Generar con IA" o "A mano".</div>';
+      return;
+    }
+    resultsList.innerHTML = '';
+    data.slice(0,20).forEach(rec=>{
+      const card = document.createElement('div');
+      card.className = 'result-card';
+      const badge = rec.syncedLyrics ? '<span class="badge badge-synced">SINCRONIZADA</span>' : '<span class="badge badge-plain">SOLO TEXTO</span>';
+      card.innerHTML = '<div class="rtitle">'+escapeHtml(rec.trackName)+badge+'</div>'+
+        '<div class="rmeta">'+escapeHtml(rec.artistName)+' · '+escapeHtml(rec.albumName||'')+' · '+formatTime(rec.duration||0)+'</div>';
+      card.addEventListener('click', ()=>selectResult(rec, card));
+      resultsList.appendChild(card);
+    });
+  }
+  function escapeHtml(s){
+    return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function selectResult(rec, cardEl){
+    document.querySelectorAll('.result-card').forEach(c=>c.classList.remove('selected'));
+    cardEl.classList.add('selected');
+    state.selectedDuration = rec.duration || null;
+    if(rec.syncedLyrics){
+      let parsed = parseLRC(rec.syncedLyrics);
+      if(document.getElementById('punctSplitCheck').checked){
+        parsed = splitLinesByPunct(parsed);
+      }
+      state.lines = parsed;
+      document.getElementById('lrcEditor').value = serializeLRC(parsed);
+    } else if(rec.plainLyrics){
+      document.getElementById('lrcEditor').value = rec.plainLyrics;
+      alert('Esta letra no tiene sincronización por línea. Se cargó como texto plano: revísala en "Editar letra cruda" o usa "Generar con IA" / "A mano".');
+      state.lines = [];
+    }
+    checkDurationMismatch();
+  }
+
+  function checkDurationMismatch(){
+    if(state.selectedDuration && state.audioDuration){
+      const diff = Math.abs(state.selectedDuration - state.audioDuration);
+      if(diff > 3){
+        durationWarning.classList.remove('hidden');
+        durationWarning.textContent = '⚠ Esta letra dura '+formatTime(state.selectedDuration)+' y tu audio dura '+formatTime(state.audioDuration)+'. Puede ser una versión distinta — revisa el ajuste de sincronización.';
+      } else {
+        durationWarning.classList.add('hidden');
+      }
+    }
+  }
+
+  // ---------- editor LRC manual ----------
+  document.getElementById('applyLrcBtn').addEventListener('click', ()=>{
+    const txt = document.getElementById('lrcEditor').value;
+    let parsed = parseLRC(txt);
+    if(!parsed.length){ alert('No se detectaron líneas con formato [mm:ss.xx].'); return; }
+    if(document.getElementById('punctSplitCheck').checked){
+      parsed = splitLinesByPunct(parsed);
+    }
+    state.lines = parsed;
+    alert('Letra actualizada: '+parsed.length+' líneas.');
+  });
+
+  // ---------- sincronización manual ----------
+  const manualLyrics = document.getElementById('manualLyrics');
+  const manualSyncTools = document.getElementById('manualSyncTools');
+  const manualList = document.getElementById('manualList');
+
+  document.getElementById('prepareManualBtn').addEventListener('click', ()=>{
+    const raw = manualLyrics.value.split('\n').map(l=>l.trim()).filter(Boolean);
+    if(!raw.length){ alert('Escribe al menos una línea de letra.'); return; }
+    if(!audio.src){ alert('Primero sube el archivo de audio.'); return; }
+    state.manualPending = raw.map(text=>({text, t:null}));
+    manualSyncTools.classList.remove('hidden');
+    renderManualList();
+  });
+
+  function renderManualList(){
+    manualList.innerHTML = '';
+    const firstPendingIdx = state.manualPending.findIndex(l=>l.t===null);
+    state.manualPending.forEach((l,i)=>{
+      const row = document.createElement('div');
+      row.className = 'manual-line'+(i===firstPendingIdx?' current':'');
+      row.innerHTML = '<span>'+escapeHtml(l.text)+'</span><span class="t">'+(l.t===null?'—':formatTime(l.t))+'</span>';
+      manualList.appendChild(row);
+    });
+  }
+
+  document.getElementById('manualPlayBtn').addEventListener('click', ()=>{
+    audio.currentTime = 0;
+    audio.play();
+  });
+
+  function markCurrentLine(){
+    if(!state.manualPending) return;
+    const idx = state.manualPending.findIndex(l=>l.t===null);
+    if(idx===-1) return;
+    state.manualPending[idx].t = audio.currentTime;
+    renderManualList();
+  }
+  document.getElementById('markLineBtn').addEventListener('click', markCurrentLine);
+
+  document.getElementById('undoMarkBtn').addEventListener('click', ()=>{
+    if(!state.manualPending) return;
+    let lastIdx = -1;
+    state.manualPending.forEach((l,i)=>{ if(l.t!==null) lastIdx=i; });
+    if(lastIdx>=0){ state.manualPending[lastIdx].t = null; renderManualList(); }
+  });
+
+  document.getElementById('saveManualBtn').addEventListener('click', ()=>{
+    if(!state.manualPending){ return; }
+    const marked = state.manualPending.filter(l=>l.t!==null).sort((a,b)=>a.t-b.t);
+    if(!marked.length){ alert('Marca al menos una línea antes de guardar.'); return; }
+    state.lines = marked.map(l=>({t:l.t, text:l.text}));
+    document.getElementById('lrcEditor').value = serializeLRC(state.lines);
+    alert('Sincronización guardada: '+state.lines.length+' líneas.');
+  });
+
+  document.addEventListener('keydown', e=>{
+    if(e.code==='Space' && manualSyncTools && !manualSyncTools.classList.contains('hidden')){
+      const tag = (document.activeElement && document.activeElement.tagName)||'';
+      if(tag!=='INPUT' && tag!=='TEXTAREA'){
+        e.preventDefault();
+        markCurrentLine();
+      }
+    }
+  });
+
+  // ---------- offset ----------
+  const offsetRange = document.getElementById('offsetRange');
+  const offsetLabel = document.getElementById('offsetLabel');
+  offsetRange.addEventListener('input', ()=>{
+    state.offset = parseFloat(offsetRange.value);
+    offsetLabel.textContent = (state.offset>=0?'+':'')+state.offset.toFixed(1)+'s';
+  });
+
+  // ---------- estilo ----------
+  document.querySelectorAll('input[name=bgType]').forEach(r=>{
+    r.addEventListener('change', ()=>{
+      state.style.bgType = r.value;
+      document.querySelectorAll('.bg-sub').forEach(s=>s.classList.toggle('active', s.dataset.type===r.value));
+    });
+  });
+  document.getElementById('bgColor').addEventListener('input', e=>{ state.style.bgColor = e.target.value; });
+  document.getElementById('bgGradA').addEventListener('input', e=>{ state.style.bgGradA = e.target.value; });
+  document.getElementById('bgGradB').addEventListener('input', e=>{ state.style.bgGradB = e.target.value; });
+  document.getElementById('bgAngle').addEventListener('input', e=>{ state.style.bgAngle = parseFloat(e.target.value); });
+  document.getElementById('bgImageInput').addEventListener('change', e=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = ()=>{ bgImageEl = img; };
+    img.src = url;
+    state.style.bgImage = url;
+  });
+  document.querySelectorAll('.preset-swatch').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.style.bgType = 'gradient';
+      state.style.bgGradA = btn.dataset.a;
+      state.style.bgGradB = btn.dataset.b;
+      const radio = document.querySelector('input[name=bgType][value="gradient"]');
+      if(radio) radio.checked = true;
+      document.querySelectorAll('.bg-sub').forEach(s2=>s2.classList.toggle('active', s2.dataset.type==='gradient'));
+      document.getElementById('bgGradA').value = btn.dataset.a;
+      document.getElementById('bgGradB').value = btn.dataset.b;
+    });
+  });
+
+  document.getElementById('visibleLinesSelect').addEventListener('change', e=>{
+    state.visibleLineCount = parseInt(e.target.value,10);
+  });
+  document.getElementById('anticipationRange').addEventListener('input', e=>{
+    state.anticipationSeconds = parseInt(e.target.value,10);
+    document.getElementById('anticipationLabel').textContent = state.anticipationSeconds+'s';
+  });
+
+  document.getElementById('fontSelect').addEventListener('change', e=>{ state.style.font = e.target.value; });
+  const fontSizeRange = document.getElementById('fontSizeRange');
+  fontSizeRange.addEventListener('input', e=>{
+    state.style.fontSize = parseInt(e.target.value,10);
+    document.getElementById('fontSizeLabel').textContent = state.style.fontSize;
+  });
+  document.getElementById('textColor').addEventListener('input', e=>{ state.style.textColor = e.target.value; });
+  document.getElementById('highlightColor').addEventListener('input', e=>{ state.style.highlightColor = e.target.value; });
+  document.getElementById('watermarkInput').addEventListener('input', e=>{ state.style.watermark = e.target.value; });
+  document.getElementById('watermarkFontSelect').addEventListener('change', e=>{ state.style.watermarkFont = e.target.value; });
+  document.getElementById('wmSizeRange').addEventListener('input', e=>{
+    state.style.watermarkSize = parseInt(e.target.value,10);
+    document.getElementById('wmSizeLabel').textContent = state.style.watermarkSize;
+  });
+  document.getElementById('watermarkColor').addEventListener('input', e=>{ state.style.watermarkColor = e.target.value; });
+
+  let logoImageEl = null;
+  document.getElementById('logoBtn').addEventListener('click', ()=>document.getElementById('logoInput').click());
+  document.getElementById('logoInput').addEventListener('change', e=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    document.getElementById('logoFileName').textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      state.style.logoDataURL = ev.target.result;
+      const img = new Image();
+      img.onload = ()=>{ logoImageEl = img; };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  function applyAspectToCanvas(){
+    if(state.aspect==='16:9'){
+      canvas.width = 1280; canvas.height = 720;
+      screenFrame.style.aspectRatio = '16/9';
+    } else {
+      canvas.width = 720; canvas.height = 1280;
+      screenFrame.style.aspectRatio = '9/16';
+    }
+  }
+  document.querySelectorAll('.aspect-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.aspect-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      state.aspect = btn.dataset.aspect;
+      applyAspectToCanvas();
+    });
+  });
+
+  // ---------- guardar / cargar proyecto ----------
+  document.getElementById('saveProjectBtn').addEventListener('click', ()=>{
+    const project = {
+      version:1,
+      title: titleInput.value, artist: artistInput.value,
+      lines: state.lines, offset: state.offset, aspect: state.aspect,
+      visibleLineCount: state.visibleLineCount, anticipationSeconds: state.anticipationSeconds,
+      style: state.style
+    };
+    const blob = new Blob([JSON.stringify(project,null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = slug(titleInput.value)+'-proyecto.json';
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+
+  document.getElementById('loadProjectBtn').addEventListener('click', ()=>{
+    document.getElementById('loadProjectInput').click();
+  });
+  document.getElementById('loadProjectInput').addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    try{
+      const project = JSON.parse(await file.text());
+      titleInput.value = project.title || '';
+      artistInput.value = project.artist || '';
+      state.lines = project.lines || [];
+      state.offset = project.offset || 0;
+      offsetRange.value = state.offset;
+      offsetLabel.textContent = (state.offset>=0?'+':'')+state.offset.toFixed(1)+'s';
+      state.aspect = project.aspect || '16:9';
+      state.visibleLineCount = project.visibleLineCount || 4;
+      state.anticipationSeconds = project.anticipationSeconds || 4;
+      Object.assign(state.style, project.style || {});
+      document.getElementById('lrcEditor').value = serializeLRC(state.lines);
+      syncStyleControlsFromState();
+      alert('Proyecto cargado. Vuelve a subir el archivo de audio original para seguir editando.');
+    }catch(err){
+      console.error(err);
+      alert('No se pudo leer ese archivo de proyecto.');
+    }
+  });
+
+  function syncStyleControlsFromState(){
+    const radio = document.querySelector('input[name=bgType][value="'+state.style.bgType+'"]');
+    if(radio) radio.checked = true;
+    document.querySelectorAll('.bg-sub').forEach(s=>s.classList.toggle('active', s.dataset.type===state.style.bgType));
+    document.getElementById('bgColor').value = state.style.bgColor;
+    document.getElementById('bgGradA').value = state.style.bgGradA;
+    document.getElementById('bgGradB').value = state.style.bgGradB;
+    document.getElementById('bgAngle').value = state.style.bgAngle;
+    document.getElementById('fontSelect').value = state.style.font;
+    document.getElementById('fontSizeRange').value = state.style.fontSize;
+    document.getElementById('fontSizeLabel').textContent = state.style.fontSize;
+    document.getElementById('textColor').value = state.style.textColor;
+    document.getElementById('highlightColor').value = state.style.highlightColor;
+    document.getElementById('watermarkInput').value = state.style.watermark;
+    document.getElementById('watermarkFontSelect').value = state.style.watermarkFont || 'Work Sans';
+    document.getElementById('wmSizeRange').value = state.style.watermarkSize || 28;
+    document.getElementById('wmSizeLabel').textContent = state.style.watermarkSize || 28;
+    document.getElementById('watermarkColor').value = state.style.watermarkColor || '#ffffff';
+    document.getElementById('visibleLinesSelect').value = String(state.visibleLineCount);
+    document.getElementById('anticipationRange').value = state.anticipationSeconds;
+    document.getElementById('anticipationLabel').textContent = state.anticipationSeconds+'s';
+    document.querySelectorAll('.aspect-btn').forEach(b=>b.classList.toggle('active', b.dataset.aspect===state.aspect));
+    applyAspectToCanvas();
+  }
+
+  // ---------- canvas ----------
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const FONT_WEIGHTS = {Montserrat:800, Anton:400, 'Bebas Neue':400, Caveat:700};
+
+  function getCurrentLineIndex(t){
+    let idx = -1;
+    for(let i=0;i<state.lines.length;i++){
+      if(state.lines[i].t <= t) idx = i; else break;
+    }
+    return idx;
+  }
+
+  function drawCover(img,w,h){
+    const ir = img.width/img.height, cr = w/h;
+    let sw,sh,sx,sy;
+    if(ir>cr){ sh=img.height; sw=sh*cr; sx=(img.width-sw)/2; sy=0; }
+    else { sw=img.width; sh=sw/cr; sx=0; sy=(img.height-sh)/2; }
+    ctx.drawImage(img, sx,sy,sw,sh, 0,0,w,h);
+  }
+
+  function drawBackground(w,h){
+    const s = state.style;
+    if(s.bgType==='image' && bgImageEl && bgImageEl.complete){
+      drawCover(bgImageEl,w,h);
+      ctx.fillStyle = 'rgba(0,0,0,0.38)';
+      ctx.fillRect(0,0,w,h);
+    } else if(s.bgType==='gradient'){
+      const rad = s.bgAngle*Math.PI/180;
+      const x1 = w/2 - Math.cos(rad)*w/2, y1 = h/2 - Math.sin(rad)*h/2;
+      const x2 = w/2 + Math.cos(rad)*w/2, y2 = h/2 + Math.sin(rad)*h/2;
+      const g = ctx.createLinearGradient(x1,y1,x2,y2);
+      g.addColorStop(0, s.bgGradA);
+      g.addColorStop(1, s.bgGradB);
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,w,h);
+    } else {
+      ctx.fillStyle = s.bgColor;
+      ctx.fillRect(0,0,w,h);
+    }
+  }
+
+  function wrapLines(text, maxWidth){
+    const words = text.split(' ');
+    const lines = [];
+    let line = '';
+    for(const word of words){
+      const test = line ? line+' '+word : word;
+      if(ctx.measureText(test).width > maxWidth && line){ lines.push(line); line = word; }
+      else line = test;
+    }
+    if(line) lines.push(line);
+    return lines;
+  }
+
+  function drawTextBlock(text, cx, cy, maxWidth, lineHeight, color){
+    ctx.fillStyle = color;
+    const lines = wrapLines(text, maxWidth);
+    const totalH = lines.length*lineHeight;
+    let y = cy - totalH/2 + lineHeight/2;
+    lines.forEach(l=>{ ctx.fillText(l, cx, y); y += lineHeight; });
+  }
+
+  // Wraps text but also returns, for each visual row, the character offset
+  // where that row begins in the original string (used to split the karaoke sweep).
+  function wrapLinesWithOffsets(text, maxWidth){
+    const words = text.split(' ');
+    const rows = [];
+    let line = '';
+    let rowStart = 0;
+    let idx = 0;
+    for(let wi=0; wi<words.length; wi++){
+      const word = words[wi];
+      const candidate = line ? line+' '+word : word;
+      if(ctx.measureText(candidate).width > maxWidth && line){
+        rows.push({str:line, start:rowStart});
+        rowStart = idx;
+        line = word;
+      } else {
+        line = candidate;
+      }
+      idx += word.length + (wi<words.length-1 ? 1 : 0);
+    }
+    rows.push({str:line, start:rowStart});
+    return rows;
+  }
+
+  // Estimate how long a line takes to sing when we don't have word-level timestamps.
+  function estimateLineDuration(text){
+    return Math.max(1.2, text.length*0.09);
+  }
+
+  function lineEndTime(line){
+    if(line.words && line.words.length) return line.words[line.words.length-1].end;
+    return line.t + estimateLineDuration(line.text);
+  }
+
+  // Returns how many characters of the line should be painted in the "sung" color.
+  function getSungCharCount(line, effT, fallbackEnd){
+    const text = line.text;
+    if(line.words && line.words.length){
+      let consumed = 0;
+      for(let i=0;i<line.words.length;i++){
+        const wd = line.words[i];
+        const wlen = wd.text.length + 1;
+        if(effT >= wd.end){
+          consumed += wlen;
+        } else if(effT >= wd.t){
+          const frac = (effT-wd.t)/Math.max(0.05,(wd.end-wd.t));
+          consumed += Math.round(wlen*frac);
+          break;
+        } else break;
+      }
+      return Math.max(0, Math.min(text.length, consumed));
+    }
+    const dur = Math.max(0.6, (fallbackEnd||line.t+2) - line.t);
+    const frac = Math.max(0, Math.min(1, (effT-line.t)/dur));
+    return Math.round(text.length*frac);
+  }
+
+  function drawSweepRow(row, sungCount, cx, y, baseColor, highlightColor){
+    const localCut = Math.max(0, Math.min(row.str.length, sungCount-row.start));
+    const sungPart = row.str.slice(0,localCut);
+    const restPart = row.str.slice(localCut);
+    const totalWidth = ctx.measureText(row.str).width;
+    let x = cx - totalWidth/2;
+    ctx.textAlign = 'left';
+    if(sungPart){
+      ctx.fillStyle = highlightColor;
+      ctx.fillText(sungPart, x, y);
+      x += ctx.measureText(sungPart).width;
+    }
+    if(restPart){
+      ctx.fillStyle = baseColor;
+      ctx.fillText(restPart, x, y);
+    }
+  }
+
+  // Fixed-block model: always shows exactly visibleLineCount slots.
+  // Slot 0 = current line (active). Slots 1..N-1 = next upcoming lines.
+  // Lines completely shift when the active one finishes — no scroll effect.
+  function buildVisibleLines(idx, effT){
+    const list = [];
+    // Current line (slot 0)
+    if(idx >= 0) list.push({line:state.lines[idx], active:true});
+    // Fill remaining slots with next lines regardless of anticipation window
+    let i = idx + 1;
+    while(list.length < state.visibleLineCount && i < state.lines.length){
+      list.push({line:state.lines[i], active:false});
+      i++;
+    }
+    // Pad with empty slots so the block height stays stable
+    while(list.length < state.visibleLineCount){
+      list.push(null);
+    }
+    return list;
+  }
+
+  function drawLyricBlock(effT, idx, nextStartForActive){
+    const visible = buildVisibleLines(idx, effT);
+    const s = state.style;
+    const w = canvas.width, h = canvas.height;
+    const weight = FONT_WEIGHTS[s.font] || 700;
+    const zoneH = h * 0.70;
+    const lineHeight = Math.min(Math.round(h*(s.fontSize/720))*1.35, zoneH/state.visibleLineCount);
+    const fontSize = Math.round(lineHeight/1.35);
+    const maxWidth = w * 0.86;
+    ctx.font = weight+' '+fontSize+'px "'+s.font+'"';
+    ctx.textBaseline = 'middle';
+
+    // count total visual rows for centering
+    const blocks = visible.map(v=> v ? ({
+      rows: wrapLinesWithOffsets(v.line.text, maxWidth),
+      active: v.active,
+      line: v.line
+    }) : null);
+    const totalRows = blocks.reduce((acc,b)=> acc + (b ? b.rows.length : 1), 0);
+    const totalHeight = totalRows * lineHeight;
+    const cx = w/2;
+    let y = h/2 - totalHeight/2 + lineHeight/2;
+
+    blocks.forEach(b=>{
+      if(!b){ y += lineHeight; return; } // empty slot
+      let sungCount = 0;
+      let scale = 1;
+      if(b.active){
+        sungCount = getSungCharCount(b.line, effT, nextStartForActive);
+        const timeSince = effT - b.line.t;
+        if(timeSince>=0 && timeSince<0.25) scale = 0.97 + 0.03*(timeSince/0.25);
+      }
+      b.rows.forEach(row=>{
+        ctx.save();
+        // Active line: full opacity + sweep color. Upcoming: 55% opacity, base color only.
+        ctx.globalAlpha = b.active ? 1 : 0.55;
+        if(scale!==1){ ctx.translate(cx,y); ctx.scale(scale,scale); ctx.translate(-cx,-y); }
+        if(b.active){
+          drawSweepRow(row, sungCount, cx, y, s.textColor, s.highlightColor);
+        } else {
+          ctx.fillStyle = s.textColor;
+          ctx.textAlign = 'center';
+          ctx.fillText(row.str, cx, y);
+        }
+        ctx.restore();
+        y += lineHeight;
+      });
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  function drawWaitingBar(effT, gapStart, gapEnd){
+    const w = canvas.width, h = canvas.height;
+    const s = state.style;
+    const progress = Math.max(0, Math.min(1, (effT-gapStart)/Math.max(0.001,(gapEnd-gapStart))));
+    const remaining = gapEnd - effT;
+
+    // countdown number or "Preparando"
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    if(remaining <= 3.4 && remaining > 0){
+      const n = Math.max(1, Math.min(3, Math.ceil(remaining-0.001)));
+      // big pulsing number
+      const pulse = 1 + 0.06*Math.sin((effT%1)*Math.PI*2);
+      ctx.save();
+      ctx.translate(w/2, h*0.44);
+      ctx.scale(pulse, pulse);
+      const fontSize = Math.round(h*0.22);
+      ctx.font = (FONT_WEIGHTS[s.font]||700)+' '+fontSize+'px "'+s.font+'"';
+      ctx.fillStyle = s.highlightColor;
+      ctx.shadowColor = s.highlightColor;
+      ctx.shadowBlur = 40;
+      ctx.fillText(String(n), 0, 0);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    } else {
+      ctx.font = '700 '+Math.round(h*0.048)+'px "Work Sans"';
+      ctx.fillStyle = 'rgba(244,234,216,0.85)';
+      ctx.fillText('Instrumental', w/2, h*0.44);
+    }
+
+    // progress bar — centered, thick, glowing
+    const barW = Math.round(w*0.55);
+    const barH = Math.max(8, Math.round(h*0.018));
+    const bx = Math.round(w/2 - barW/2);
+    const by = Math.round(h*0.60);
+    const radius = barH/2;
+
+    // track
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(bx, by, barW, barH, radius) : ctx.rect(bx, by, barW, barH);
+    ctx.fillStyle = 'rgba(244,234,216,0.18)';
+    ctx.fill();
+
+    // fill with glow
+    const fillW = Math.max(radius*2, barW*progress);
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(bx, by, fillW, barH, radius) : ctx.rect(bx, by, fillW, barH);
+    ctx.fillStyle = s.highlightColor;
+    ctx.shadowColor = s.highlightColor;
+    ctx.shadowBlur = 18;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  function drawWatermark(w,h){
+    const s = state.style;
+    if(logoImageEl && logoImageEl.complete && s.logoDataURL){
+      const maxH = Math.round(h*0.065);
+      const ratio = logoImageEl.width/logoImageEl.height;
+      const lh = maxH, lw = Math.round(maxH*ratio);
+      ctx.globalAlpha = 0.85;
+      ctx.drawImage(logoImageEl, w - lw - 20, h - lh - 16, lw, lh);
+      ctx.globalAlpha = 1;
+    } else if(s.watermark){
+      ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+      const wSize = s.watermarkSize || 28;
+      ctx.font = '700 '+wSize+'px "'+(s.watermarkFont||'Work Sans')+'"';
+      ctx.fillStyle = s.watermarkColor || '#ffffff';
+      ctx.globalAlpha = 0.8;
+      ctx.fillText(s.watermark, w-20, h-16);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function drawIntro(effT){
+    const w = canvas.width, h = canvas.height;
+    const s = state.style;
+    const title = titleInput.value || '';
+    const artist = artistInput.value || '';
+    const fade = Math.min(1, effT/0.5);
+    ctx.globalAlpha = fade;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const weight = FONT_WEIGHTS[s.font] || 700;
+    const titleSize = Math.round(h*(s.fontSize/720));
+    ctx.font = weight+' '+titleSize+'px "'+s.font+'"';
+    ctx.fillStyle = s.highlightColor;
+    ctx.shadowColor = s.highlightColor;
+    ctx.shadowBlur = 24;
+    ctx.fillText(title, w/2, h*0.43);
+    ctx.shadowBlur = 0;
+    if(artist){
+      ctx.font = '600 '+Math.round(titleSize*0.52)+'px "'+s.font+'"';
+      ctx.fillStyle = s.textColor;
+      ctx.fillText(artist, w/2, h*0.43 + titleSize*0.9);
+    }
+    // separator line
+    const lw = Math.min(w*0.4, Math.max(80, ctx.measureText(title).width));
+    ctx.strokeStyle = s.highlightColor;
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = fade*0.5;
+    ctx.beginPath();
+    ctx.moveTo(w/2-lw/2, h*0.43 + titleSize*0.55);
+    ctx.lineTo(w/2+lw/2, h*0.43 + titleSize*0.55);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    drawWatermark(w,h);
+  }
+
+  function draw(t){
+    const w = canvas.width, h = canvas.height;
+    drawBackground(w,h);
+    const s = state.style;
+
+    if(!state.lines.length){
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = '600 '+Math.round(h*0.04)+'px "Work Sans"';
+      ctx.fillStyle = 'rgba(244,234,216,0.55)';
+      ctx.fillText('Sube tu canción y sincroniza la letra para ver la vista previa', w/2, h/2);
+      drawWatermark(w,h);
+      return;
+    }
+
+    const firstLineT = state.lines[0].t;
+    const effT = t + state.offset;
+
+    // INTRO: show title/artist until the first line starts (max introDuration seconds)
+    const introEnd = Math.min(firstLineT, state.introDuration);
+    if(effT < introEnd){
+      drawIntro(effT);
+      return;
+    }
+
+    const idx = getCurrentLineIndex(effT);
+    const cur = idx>=0 ? state.lines[idx] : null;
+    const next = (idx+1<state.lines.length) ? state.lines[idx+1] : null;
+
+    const GAP_THRESHOLD = 4;
+    let prevEnd, nextStart;
+    if(cur){
+      prevEnd = lineEndTime(cur);
+      nextStart = next ? next.t : null;
+    } else {
+      prevEnd = introEnd;
+      nextStart = state.lines[0].t;
+    }
+    const inGap = nextStart!=null && (nextStart-prevEnd) > GAP_THRESHOLD && effT>=prevEnd && effT<nextStart;
+
+    if(inGap){
+      drawWaitingBar(effT, prevEnd, nextStart);
+    } else if(cur){
+      drawLyricBlock(effT, idx, next ? next.t : (prevEnd+4));
+    } else {
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.font = '600 '+Math.round(h*0.04)+'px "Work Sans"';
+      ctx.fillStyle = 'rgba(244,234,216,0.45)';
+      ctx.fillText('—', w/2, h/2);
+    }
+
+    drawWatermark(w,h);
+  }
+
+  function loop(){
+    draw(audio.currentTime||0);
+    requestAnimationFrame(loop);
+  }
+  const FONT_PRELOAD = ['800px Montserrat','400px "Bebas Neue"','700px Caveat','400px Anton','600px "Work Sans"'];
+  Promise.all(FONT_PRELOAD.map(f=>document.fonts.load(f).catch(()=>{})))
+    .then(()=>requestAnimationFrame(loop));
+
+  // ---------- audio instrumental ----------
+  const instrumentalDropzone = document.getElementById('instrumentalDropzone');
+  const instrumentalFileInput = document.getElementById('instrumentalFile');
+  const instrumentalFileName = document.getElementById('instrumentalFileName');
+  const instrumentalAudio = new Audio();
+  instrumentalAudio.preload = 'metadata';
+  let instrumentalLoaded = false;
+
+  function wireDropzone(dz, input, filenameEl, onFile){
+    dz.addEventListener('click', ()=>input.click());
+    dz.addEventListener('dragover', e=>{e.preventDefault(); dz.classList.add('drag');});
+    dz.addEventListener('dragleave', ()=>dz.classList.remove('drag'));
+    dz.addEventListener('drop', e=>{e.preventDefault(); dz.classList.remove('drag'); if(e.dataTransfer.files[0]) onFile(e.dataTransfer.files[0]);});
+    input.addEventListener('change', e=>{ if(e.target.files[0]) onFile(e.target.files[0]); });
+  }
+  wireDropzone(instrumentalDropzone, instrumentalFileInput, instrumentalFileName, file=>{
+    instrumentalAudio.src = URL.createObjectURL(file);
+    instrumentalAudio.load();
+    instrumentalLoaded = true;
+    instrumentalFileName.textContent = file.name;
+  });
+  document.getElementById('instrumentalBtn').addEventListener('click', ()=>instrumentalFileInput.click());
+
+  // ---------- exportación de video ----------
+  const exportBtn = document.getElementById('exportBtn');
+  const progressEl = document.getElementById('progress');
+  const progressFill = document.getElementById('progressFill');
+  const exportStatus = document.getElementById('exportStatus');
+  const downloadLink = document.getElementById('downloadLink');
+  const downloadLinkMp4 = document.getElementById('downloadLinkMp4');
+  const recIndicator = document.getElementById('recIndicator');
+
+  // We may need two separate AudioContexts if instrumental is used
+  let _audioCtx=null, _destNode=null, _srcNode=null;
+  let _instrCtx=null, _instrDest=null, _instrSrc=null;
+
+  function getAudioGraph(useInstrumental){
+    const target = useInstrumental ? instrumentalAudio : audio;
+    if(useInstrumental){
+      if(!_instrCtx){
+        _instrCtx = new (window.AudioContext||window.webkitAudioContext)();
+        _instrSrc = _instrCtx.createMediaElementSource(instrumentalAudio);
+        _instrDest = _instrCtx.createMediaStreamDestination();
+        _instrSrc.connect(_instrDest);
+        _instrSrc.connect(_instrCtx.destination);
+      }
+      return {audioCtx:_instrCtx, dest:_instrDest, audioEl:instrumentalAudio};
+    } else {
+      if(!_audioCtx){
+        _audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+        _srcNode = _audioCtx.createMediaElementSource(audio);
+        _destNode = _audioCtx.createMediaStreamDestination();
+        _srcNode.connect(_destNode);
+        _srcNode.connect(_audioCtx.destination);
+      }
+      return {audioCtx:_audioCtx, dest:_destNode, audioEl:audio};
+    }
+  }
+
+  function setProgress(ratio){
+    progressEl.classList.add('show');
+    progressFill.style.width = Math.round(Math.max(0,Math.min(1,ratio))*100)+'%';
+  }
+
+  let ffmpegInstance = null;
+  async function loadFFmpeg(){
+    if(ffmpegInstance) return ffmpegInstance;
+    exportStatus.textContent = 'Cargando convertidor MP4 en segundo plano…';
+    await loadScript('https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js');
+    const { createFFmpeg } = window.FFmpeg;
+    ffmpegInstance = createFFmpeg({
+      corePath:'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+      log:false,
+      progress:({ratio})=>setProgress(ratio)
+    });
+    await ffmpegInstance.load();
+    return ffmpegInstance;
+  }
+
+  async function transcodeToMp4InBackground(webmBlob, baseName){
+    try{
+      const ffmpeg = await loadFFmpeg();
+      const { fetchFile } = window.FFmpeg;
+      exportStatus.textContent = 'Convirtiendo a MP4 en segundo plano (el WebM ya está disponible)…';
+      setProgress(0);
+      ffmpeg.FS('writeFile','input.webm', await fetchFile(webmBlob));
+      await ffmpeg.run('-i','input.webm','-c:v','libx264','-preset','fast','-crf','22','-c:a','aac','-b:a','192k','-pix_fmt','yuv420p','output.mp4');
+      const data = ffmpeg.FS('readFile','output.mp4');
+      try{ ffmpeg.FS('unlink','input.webm'); ffmpeg.FS('unlink','output.mp4'); }catch(e){}
+      const mp4Blob = new Blob([data.buffer], {type:'video/mp4'});
+      const mp4Url = URL.createObjectURL(mp4Blob);
+      downloadLinkMp4.href = mp4Url;
+      downloadLinkMp4.download = baseName+'.mp4';
+      downloadLinkMp4.style.display = 'flex';
+      progressEl.classList.remove('show');
+      exportStatus.textContent = 'MP4 listo también. Puedes descargar cualquiera de los dos.';
+    }catch(err){
+      console.error(err);
+      progressEl.classList.remove('show');
+      exportStatus.textContent = 'No se pudo convertir a MP4, pero el WebM ya está disponible para descargar.';
+    }
+  }
+
+  function setControlsLocked(locked){
+    document.querySelectorAll('.aspect-btn').forEach(b=>b.disabled = locked);
+  }
+
+  exportBtn.addEventListener('click', async ()=>{
+    if(!audio.src){ alert('Sube primero el archivo de audio principal.'); return; }
+    if(!state.lines.length){ alert('Necesitas letra sincronizada antes de exportar.'); return; }
+    if(!canvas.captureStream || !window.MediaRecorder){
+      alert('Tu navegador no soporta exportación de video. Prueba con Chrome o Edge actualizado.');
+      return;
+    }
+
+    exportBtn.disabled = true;
+    setControlsLocked(true);
+    downloadLink.classList.remove('show');
+    downloadLinkMp4.style.display = 'none';
+    exportStatus.textContent = 'Preparando…';
+    setProgress(0);
+
+    const useInstrumental = instrumentalLoaded;
+    const { audioCtx, dest, audioEl } = getAudioGraph(useInstrumental);
+    if(audioCtx.state === 'suspended') await audioCtx.resume();
+
+    // Canvas always driven by main audio timing; instrumental plays separately for audio track
+    const videoStream = canvas.captureStream(30);
+    const combined = new MediaStream([
+      ...videoStream.getVideoTracks(),
+      ...dest.stream.getAudioTracks()
+    ]);
+
+    const mimeCandidates = [
+      'video/mp4;codecs=h264,aac','video/mp4',
+      'video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'
+    ];
+    const mimeType = mimeCandidates.find(m=>MediaRecorder.isTypeSupported(m)) || '';
+    let recorder;
+    try{
+      recorder = mimeType ? new MediaRecorder(combined,{mimeType}) : new MediaRecorder(combined);
+    }catch(err){
+      console.error(err);
+      alert('No se pudo iniciar la grabación de video en este navegador.');
+      exportBtn.disabled = false; setControlsLocked(false); return;
+    }
+
+    const chunks = [];
+    recorder.ondataavailable = e=>{ if(e.data && e.data.size) chunks.push(e.data); };
+
+    const baseName = slug(titleInput.value);
+
+    recorder.onstop = async ()=>{
+      const finalType = recorder.mimeType || mimeType || 'video/webm';
+      const blob = new Blob(chunks, {type:finalType});
+
+      if(finalType.indexOf('mp4')!==-1){
+        // Browser recorded native MP4 — offer immediately
+        const url = URL.createObjectURL(blob);
+        downloadLink.href = url; downloadLink.download = baseName+'.mp4';
+        downloadLink.textContent = '⬇ Descargar video (MP4 — listo)';
+        downloadLink.classList.add('show');
+        progressEl.classList.remove('show');
+        exportStatus.textContent = 'Video listo.';
+        exportBtn.disabled = false; setControlsLocked(false);
+        recIndicator.classList.remove('show');
+      } else {
+        // Offer WebM immediately, transcode MP4 in background
+        const webmUrl = URL.createObjectURL(blob);
+        downloadLink.href = webmUrl; downloadLink.download = baseName+'.webm';
+        downloadLink.textContent = '⬇ Descargar video (WebM — listo ya)';
+        downloadLink.classList.add('show');
+        progressEl.classList.remove('show');
+        exportStatus.textContent = 'WebM listo para descargar. Convirtiendo a MP4 en segundo plano…';
+        exportBtn.disabled = false; setControlsLocked(false);
+        recIndicator.classList.remove('show');
+        // MP4 conversion runs without blocking the UI
+        transcodeToMp4InBackground(blob, baseName);
+      }
+    };
+
+    // Sync both audios: main for canvas timing, instrumental for audio track
+    audio.pause(); audio.currentTime = 0;
+    if(useInstrumental){ audioEl.pause(); audioEl.currentTime = 0; }
+    await new Promise(r=>setTimeout(r,80));
+
+    recorder.start();
+    recIndicator.classList.add('show');
+    exportStatus.textContent = useInstrumental ? 'Grabando video con instrumental…' : 'Grabando video…';
+
+    let stopped = false;
+    const doStop = ()=>{ if(stopped) return; stopped=true; recorder.stop(); };
+    audio.addEventListener('ended', doStop, {once:true});
+    const safetyMs = (state.audioDuration ? state.audioDuration*1000 : 240000) + 3000;
+    setTimeout(doStop, safetyMs);
+
+    try{
+      if(useInstrumental){
+        await Promise.all([audio.play(), audioEl.play()]);
+      } else {
+        await audio.play();
+      }
+    }catch(err){ console.error(err); doStop(); }
+  });
+
+})();
+</script>
+</body>
+</html>
